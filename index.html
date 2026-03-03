@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AirSense IoT – Air Quality & Pollution Monitoring Network</title>
+  <meta name="description" content="Real-time IoT-based air quality monitoring system measuring CO₂, PM2.5, and NO₂ levels with cloud analytics and trend visualization." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ──────────────────────── NAVBAR ──────────────────────── -->
+<header class="navbar">
+  <div class="nav-brand">
+    <div class="brand-icon"><span>🌿</span></div>
+    <div>
+      <div class="brand-title">AirSense <span class="badge-iot">IoT</span></div>
+      <div class="brand-sub">Pollution Monitoring Network</div>
+    </div>
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-section="dashboard">
+      <span>📊</span> Dashboard
+    </button>
+    <button class="nav-tab" data-section="local-display">
+      <span>🖥️</span> Local Display
+    </button>
+    <button class="nav-tab" data-section="analytics">
+      <span>📈</span> Analytics
+    </button>
+    <button class="nav-tab" data-section="system-design">
+      <span>🔧</span> System Design
+    </button>
+    <button class="nav-tab" data-section="report">
+      <span>📄</span> Report
+    </button>
+  </nav>
+  <div class="nav-status">
+    <span class="live-dot"></span>
+    <span id="live-label">LIVE</span>
+    <span id="last-update" class="timestamp">--</span>
+  </div>
+</header>
+
+<!-- ──────────────────────── SECTION: DASHBOARD ──────────────────────── -->
+<main id="section-dashboard" class="section active">
+
+  <!-- AQI Hero Banner -->
+  <div class="aqi-hero">
+    <div class="aqi-hero-left">
+      <div class="aqi-label">Overall Air Quality Index</div>
+      <div class="aqi-value" id="aqi-value">--</div>
+      <div class="aqi-status" id="aqi-status">Loading…</div>
+      <div class="aqi-desc" id="aqi-desc">Fetching live sensor data…</div>
+    </div>
+    <div class="aqi-hero-right">
+      <canvas id="aqi-gauge" width="200" height="200"></canvas>
+    </div>
+    <div class="aqi-meta">
+      <div class="meta-item"><span>📍</span> Node: Sensor Array #1 — Zone A</div>
+      <div class="meta-item"><span>🕐</span> Updated: <span id="hero-time">--</span></div>
+      <div class="meta-item"><span>🌡️</span> Temp: <span id="hero-temp">--</span> °C</div>
+      <div class="meta-item"><span>💧</span> Humidity: <span id="hero-hum">--</span>%</div>
+    </div>
+  </div>
+
+  <!-- Sensor Cards Row -->
+  <section class="sensor-grid">
+
+    <div class="sensor-card" id="card-co2">
+      <div class="sensor-icon">🫁</div>
+      <div class="sensor-name">Carbon Dioxide</div>
+      <div class="sensor-formula">CO₂</div>
+      <div class="sensor-value" id="val-co2">--</div>
+      <div class="sensor-unit">ppm</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-co2"></div></div>
+      <div class="sensor-status" id="status-co2">--</div>
+      <div class="sensor-threshold">Safe: &lt; 1000 ppm</div>
+    </div>
+
+    <div class="sensor-card" id="card-pm25">
+      <div class="sensor-icon">💨</div>
+      <div class="sensor-name">Particulate Matter</div>
+      <div class="sensor-formula">PM2.5</div>
+      <div class="sensor-value" id="val-pm25">--</div>
+      <div class="sensor-unit">μg/m³</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-pm25"></div></div>
+      <div class="sensor-status" id="status-pm25">--</div>
+      <div class="sensor-threshold">Safe: &lt; 12 μg/m³</div>
+    </div>
+
+    <div class="sensor-card" id="card-no2">
+      <div class="sensor-icon">🏭</div>
+      <div class="sensor-name">Nitrogen Dioxide</div>
+      <div class="sensor-formula">NO₂</div>
+      <div class="sensor-value" id="val-no2">--</div>
+      <div class="sensor-unit">ppb</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-no2"></div></div>
+      <div class="sensor-status" id="status-no2">--</div>
+      <div class="sensor-threshold">Safe: &lt; 53 ppb</div>
+    </div>
+
+    <div class="sensor-card" id="card-o3">
+      <div class="sensor-icon">🌀</div>
+      <div class="sensor-name">Ozone</div>
+      <div class="sensor-formula">O₃</div>
+      <div class="sensor-value" id="val-o3">--</div>
+      <div class="sensor-unit">ppb</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-o3"></div></div>
+      <div class="sensor-status" id="status-o3">--</div>
+      <div class="sensor-threshold">Safe: &lt; 54 ppb</div>
+    </div>
+
+    <div class="sensor-card" id="card-co">
+      <div class="sensor-icon">☁️</div>
+      <div class="sensor-name">Carbon Monoxide</div>
+      <div class="sensor-formula">CO</div>
+      <div class="sensor-value" id="val-co">--</div>
+      <div class="sensor-unit">ppm</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-co"></div></div>
+      <div class="sensor-status" id="status-co">--</div>
+      <div class="sensor-threshold">Safe: &lt; 9 ppm</div>
+    </div>
+
+    <div class="sensor-card" id="card-pm10">
+      <div class="sensor-icon">🌫️</div>
+      <div class="sensor-name">Coarse Particles</div>
+      <div class="sensor-formula">PM10</div>
+      <div class="sensor-value" id="val-pm10">--</div>
+      <div class="sensor-unit">μg/m³</div>
+      <div class="sensor-bar-wrap"><div class="sensor-bar" id="bar-pm10"></div></div>
+      <div class="sensor-status" id="status-pm10">--</div>
+      <div class="sensor-threshold">Safe: &lt; 54 μg/m³</div>
+    </div>
+
+  </section>
+
+  <!-- Live Chart & Alerts -->
+  <div class="dashboard-bottom">
+    <div class="chart-card">
+      <div class="card-header">
+        <h2>📡 Real-Time Sensor Feed</h2>
+        <div class="chart-legend">
+          <span class="leg co2">CO₂</span>
+          <span class="leg pm25">PM2.5</span>
+          <span class="leg no2">NO₂</span>
+        </div>
+      </div>
+      <canvas id="live-chart" height="110"></canvas>
+    </div>
+
+    <div class="alerts-card">
+      <div class="card-header"><h2>🚨 Alert Center</h2></div>
+      <div id="alert-list">
+        <div class="alert-empty">No active alerts</div>
+      </div>
+      <div class="prediction-box" id="prediction-box">
+        <div class="pred-title">🤖 AI Prediction</div>
+        <div id="pred-text">Analyzing trends…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Node Map -->
+  <div class="node-section">
+    <div class="card-header"><h2>🗺️ Sensor Node Network</h2></div>
+    <div class="node-map">
+      <div class="node active pulse" style="top:30%;left:20%">
+        <div class="node-dot"></div>
+        <div class="node-label">Zone A<br/>Node #1</div>
+      </div>
+      <div class="node" style="top:55%;left:45%">
+        <div class="node-dot"></div>
+        <div class="node-label">Zone B<br/>Node #2</div>
+      </div>
+      <div class="node" style="top:20%;left:65%">
+        <div class="node-dot"></div>
+        <div class="node-label">Zone C<br/>Node #3</div>
+      </div>
+      <div class="node warn" style="top:70%;left:75%">
+        <div class="node-dot"></div>
+        <div class="node-label">Zone D<br/>Node #4</div>
+      </div>
+      <div class="node offline" style="top:40%;left:85%">
+        <div class="node-dot"></div>
+        <div class="node-label">Zone E<br/>Node #5<br/><small>Offline</small></div>
+      </div>
+    </div>
+    <div class="node-legend">
+      <span class="nl active">● Active</span>
+      <span class="nl warn">● Warning</span>
+      <span class="nl offline">● Offline</span>
+    </div>
+  </div>
+
+</main>
+
+<!-- ──────────────────────── SECTION: LOCAL DISPLAY ──────────────────────── -->
+<main id="section-local-display" class="section">
+  <div class="lcd-page">
+    <div class="lcd-title-area">
+      <h1>📟 Local LCD Display Simulation</h1>
+      <p>Simulates the 20×4 I²C LCD screen connected directly to the ESP32 microcontroller via I²C bus, giving on-site real-time readings without internet dependency.</p>
+    </div>
+
+    <div class="lcd-container">
+      <div class="lcd-frame">
+        <div class="lcd-bezel">
+          <div class="lcd-screen" id="lcd-screen">
+            <div class="lcd-row" id="lcd-r1">AirSense IoT v1.0</div>
+            <div class="lcd-row" id="lcd-r2">CO2:  ---- ppm  </div>
+            <div class="lcd-row" id="lcd-r3">PM2.5:---ug NO2:--ppb</div>
+            <div class="lcd-row" id="lcd-r4">AQI:--- Status:---</div>
+          </div>
+          <div class="lcd-pins">
+            <div class="pin" title="VCC (5V)"></div>
+            <div class="pin" title="GND"></div>
+            <div class="pin" title="SDA"></div>
+            <div class="pin" title="SCL"></div>
+          </div>
+        </div>
+      </div>
+      <!-- Connections diagram -->
+      <div class="hw-diagram">
+        <div class="hw-block mcu">
+          <div class="hw-icon">⚙️</div>
+          <div class="hw-label">ESP32</div>
+          <div class="hw-sub">Microcontroller</div>
+          <div class="hw-pins">
+            <span>GPIO 21 → SDA</span>
+            <span>GPIO 22 → SCL</span>
+            <span>3.3V  → VCC</span>
+            <span>GND  → GND</span>
+          </div>
+        </div>
+        <div class="hw-wire"></div>
+        <div class="hw-block sensor-hw">
+          <div class="hw-icon">🌡️</div>
+          <div class="hw-label">MH-Z19B</div>
+          <div class="hw-sub">CO₂ Sensor</div>
+        </div>
+        <div class="hw-wire"></div>
+        <div class="hw-block sensor-hw">
+          <div class="hw-icon">💨</div>
+          <div class="hw-label">PMS5003</div>
+          <div class="hw-sub">PM2.5 Sensor</div>
+        </div>
+        <div class="hw-wire"></div>
+        <div class="hw-block sensor-hw">
+          <div class="hw-icon">🏭</div>
+          <div class="hw-label">MiCS-2714</div>
+          <div class="hw-sub">NO₂ Sensor</div>
+        </div>
+        <div class="hw-wire"></div>
+        <div class="hw-block lcd-hw">
+          <div class="hw-icon">📟</div>
+          <div class="hw-label">LCD 20×4</div>
+          <div class="hw-sub">I²C Display</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Code snippet -->
+    <div class="code-card">
+      <div class="code-header">
+        <span>📄 ESP32 Firmware Snippet — sensor_read.ino</span>
+        <button class="copy-btn" onclick="copyCode()">📋 Copy</button>
+      </div>
+      <pre class="code-block" id="code-snippet"><code>// AirSense IoT – ESP32 Main Firmware
+// Sensors: MH-Z19B (CO2), PMS5003 (PM2.5), MiCS-2714 (NO2)
+// Display : 20x4 I2C LCD  |  Cloud: MQTT → ThingSpeak
+
+#include &lt;Wire.h&gt;
+#include &lt;LiquidCrystal_I2C.h&gt;
+#include &lt;MHZ19.h&gt;
+#include &lt;PMS.h&gt;
+#include &lt;WiFi.h&gt;
+#include &lt;PubSubClient.h&gt;
+
+#define CO2_RX 16
+#define CO2_TX 17
+#define SDA_PIN 21
+#define SCL_PIN 22
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+MHZ19 mhz19;
+HardwareSerial co2Serial(1);
+HardwareSerial pmsSerial(2);
+PMS pms(pmsSerial);
+PMS::DATA pmsData;
+
+WiFiClient espClient;
+PubSubClient mqttClient(espClient);
+
+int co2ppm, pm25, no2ppb;
+
+void setup() {
+  Wire.begin(SDA_PIN, SCL_PIN);
+  lcd.init(); lcd.backlight();
+  lcd.print("AirSense IoT v1.0");
+
+  co2Serial.begin(9600, SERIAL_8N1, CO2_RX, CO2_TX);
+  mhz19.begin(co2Serial);
+  mhz19.autoCalibration(false);
+
+  pmsSerial.begin(9600);
+  WiFi.begin(SSID, PASSWORD);
+  mqttClient.setServer(MQTT_SERVER, 1883);
+
+  lcd.setCursor(0,1); lcd.print("System Ready!");
+}
+
+void loop() {
+  // Read CO2
+  co2ppm = mhz19.getCO2();
+
+  // Read PM2.5
+  if (pms.readUntil(pmsData))
+    pm25 = pmsData.PM_AE_UG_2_5;
+
+  // Read NO2 (analog ADC, calibrated)
+  int raw = analogRead(NO2_PIN);
+  no2ppb = map(raw, 0, 4095, 0, 200);
+
+  // Update LCD
+  lcd.setCursor(0,1);
+  lcd.printf("CO2: %4d ppm    ", co2ppm);
+  lcd.setCursor(0,2);
+  lcd.printf("PM2.5:%3d NO2:%3dppb", pm25, no2ppb);
+  lcd.setCursor(0,3);
+  lcd.printf("AQI:%.0f %s      ", calcAQI(), getStatus());
+
+  // Upload to cloud via MQTT
+  if (mqttClient.connected()) {
+    String payload = "{\"co2\":" + String(co2ppm) +
+                     ",\"pm25\":" + String(pm25) +
+                     ",\"no2\":" + String(no2ppb) + "}";
+    mqttClient.publish("airsense/data", payload.c_str());
+  }
+
+  delay(5000); // 5-second interval
+}</code></pre>
+    </div>
+  </div>
+</main>
+
+<!-- ──────────────────────── SECTION: ANALYTICS ──────────────────────── -->
+<main id="section-analytics" class="section">
+  <div class="analytics-page">
+    <h1>📊 Cloud Analytics & Trend Visualization</h1>
+    <p class="page-sub">Data continuously streamed to cloud via MQTT → ThingSpeak. Historical trends updated every 5 seconds.</p>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-val" id="stat-readings">0</div>
+        <div class="stat-label">Total Readings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-val">5s</div>
+        <div class="stat-label">Update Interval</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">☁️</div>
+        <div class="stat-val">MQTT</div>
+        <div class="stat-label">Protocol</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-val">TLS 2.0</div>
+        <div class="stat-label">Encryption</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card full">
+        <div class="card-header"><h2>CO₂ Trend (Last 30 readings)</h2></div>
+        <canvas id="chart-co2" height="80"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-header"><h2>PM2.5 Trend</h2></div>
+        <canvas id="chart-pm25" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-header"><h2>NO₂ Trend</h2></div>
+        <canvas id="chart-no2" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-header"><h2>AQI Distribution</h2></div>
+        <canvas id="chart-aqi-dist" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="card-header"><h2>Pollutant Correlation</h2></div>
+        <canvas id="chart-radar" height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- Data Log Table -->
+    <div class="log-section">
+      <div class="card-header">
+        <h2>🗄️ Cloud Data Log</h2>
+        <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table id="data-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Timestamp</th><th>CO₂ (ppm)</th><th>PM2.5 (μg/m³)</th>
+              <th>NO₂ (ppb)</th><th>O₃ (ppb)</th><th>CO (ppm)</th><th>AQI</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ──────────────────────── SECTION: SYSTEM DESIGN ──────────────────────── -->
+<main id="section-system-design" class="section">
+  <div class="design-page">
+    <h1>🔧 System Architecture & Hardware Design</h1>
+
+    <!-- Architecture Flow -->
+    <div class="arch-section">
+      <h2>System Architecture Overview</h2>
+      <div class="arch-flow">
+        <div class="arch-block sensors">
+          <div class="ab-icon">🌡️</div>
+          <div class="ab-title">Sensing Layer</div>
+          <ul>
+            <li>MH-Z19B — CO₂ (NDIR)</li>
+            <li>PMS5003 — PM2.5 (Laser)</li>
+            <li>MiCS-2714 — NO₂ (MEMS)</li>
+            <li>MQ-131 — O₃</li>
+            <li>MQ-7 — CO</li>
+            <li>DHT22 — Temp/Humidity</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block mcu-block">
+          <div class="ab-icon">⚙️</div>
+          <div class="ab-title">Processing Layer</div>
+          <ul>
+            <li>ESP32 DevKit V1</li>
+            <li>240 MHz Dual-Core</li>
+            <li>Wi-Fi 802.11 b/g/n</li>
+            <li>16 MB Flash RAM</li>
+            <li>UART / I²C / ADC</li>
+            <li>FreeRTOS RTOS</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block display-block">
+          <div class="ab-icon">📟</div>
+          <div class="ab-title">Display Layer</div>
+          <ul>
+            <li>20×4 I²C LCD</li>
+            <li>Address: 0x27</li>
+            <li>SCL → GPIO 22</li>
+            <li>SDA → GPIO 21</li>
+            <li>VCC → 3.3V</li>
+            <li>Backlit Green</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block cloud-block">
+          <div class="ab-icon">☁️</div>
+          <div class="ab-title">Cloud Layer</div>
+          <ul>
+            <li>MQTT Broker</li>
+            <li>ThingSpeak API</li>
+            <li>Time-Series DB</li>
+            <li>REST API</li>
+            <li>HTTPS/TLS</li>
+            <li>Webhook Alerts</li>
+          </ul>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-block app-block">
+          <div class="ab-icon">📱</div>
+          <div class="ab-title">Application Layer</div>
+          <ul>
+            <li>Web Dashboard</li>
+            <li>Mobile App</li>
+            <li>SMS / Email Alerts</li>
+            <li>Public AQI API</li>
+            <li>PDF Reports</li>
+            <li>Historical Trends</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- GPIO Map -->
+    <div class="gpio-section">
+      <h2>ESP32 GPIO Pin Mapping</h2>
+      <div class="gpio-table-wrap">
+        <table class="gpio-table">
+          <thead><tr><th>GPIO</th><th>Connected To</th><th>Protocol</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td>GPIO 16</td><td>MH-Z19B RX</td><td>UART</td><td>CO₂ data receive</td></tr>
+            <tr><td>GPIO 17</td><td>MH-Z19B TX</td><td>UART</td><td>CO₂ data transmit</td></tr>
+            <tr><td>GPIO 18</td><td>PMS5003 RX</td><td>UART</td><td>PM2.5 data receive</td></tr>
+            <tr><td>GPIO 19</td><td>PMS5003 TX</td><td>UART</td><td>PM2.5 data transmit</td></tr>
+            <tr><td>GPIO 34</td><td>MiCS-2714 OUT</td><td>ADC</td><td>NO₂ analog reading</td></tr>
+            <tr><td>GPIO 35</td><td>MQ-131 OUT</td><td>ADC</td><td>O₃ analog reading</td></tr>
+            <tr><td>GPIO 36</td><td>MQ-7 OUT</td><td>ADC</td><td>CO analog reading</td></tr>
+            <tr><td>GPIO 21</td><td>LCD SDA</td><td>I²C</td><td>LCD data line</td></tr>
+            <tr><td>GPIO 22</td><td>LCD SCL</td><td>I²C</td><td>LCD clock line</td></tr>
+            <tr><td>GPIO 4</td><td>DHT22 DATA</td><td>1-Wire</td><td>Temp/Humidity</td></tr>
+            <tr><td>GPIO 2</td><td>Status LED</td><td>GPIO</td><td>System heartbeat</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Cloud Architecture -->
+    <div class="cloud-arch-section">
+      <h2>Cloud Data Pipeline</h2>
+      <div class="pipeline">
+        <div class="pipe-step">
+          <div class="pipe-icon">⚙️</div>
+          <div class="pipe-label">ESP32<br/>Sensor Node</div>
+          <div class="pipe-desc">Reads & aggregates sensor data every 5s</div>
+        </div>
+        <div class="pipe-arrow">→ MQTT →</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🔀</div>
+          <div class="pipe-label">MQTT Broker<br/>(Mosquitto)</div>
+          <div class="pipe-desc">airsense/data topic routing</div>
+        </div>
+        <div class="pipe-arrow">→ HTTP →</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">☁️</div>
+          <div class="pipe-label">ThingSpeak<br/>Cloud</div>
+          <div class="pipe-desc">Time-series storage & analytics</div>
+        </div>
+        <div class="pipe-arrow">→ REST →</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">📊</div>
+          <div class="pipe-label">Dashboard<br/>UI</div>
+          <div class="pipe-desc">Real-time charts & alerts</div>
+        </div>
+        <div class="pipe-arrow">→ Alert →</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🔔</div>
+          <div class="pipe-label">Notification<br/>Service</div>
+          <div class="pipe-desc">SMS / Email threshold alerts</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOM -->
+    <div class="bom-section">
+      <h2>📦 Bill of Materials</h2>
+      <table class="bom-table">
+        <thead><tr><th>#</th><th>Component</th><th>Model</th><th>Qty</th><th>Approx. Cost</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Microcontroller</td><td>ESP32 DevKit V1</td><td>1</td><td>₹450</td><td>Main processing + Wi-Fi</td></tr>
+          <tr><td>2</td><td>CO₂ Sensor</td><td>MH-Z19B</td><td>1</td><td>₹1,200</td><td>NDIR CO₂ measurement</td></tr>
+          <tr><td>3</td><td>Dust Sensor</td><td>PMS5003</td><td>1</td><td>₹800</td><td>PM1.0 / PM2.5 / PM10</td></tr>
+          <tr><td>4</td><td>NO₂ Sensor</td><td>MiCS-2714</td><td>1</td><td>₹950</td><td>Nitrogen dioxide detection</td></tr>
+          <tr><td>5</td><td>Ozone Sensor</td><td>MQ-131</td><td>1</td><td>₹350</td><td>O₃ monitoring</td></tr>
+          <tr><td>6</td><td>CO Sensor</td><td>MQ-7</td><td>1</td><td>₹250</td><td>Carbon monoxide detection</td></tr>
+          <tr><td>7</td><td>DHT Sensor</td><td>DHT22</td><td>1</td><td>₹150</td><td>Temp & humidity</td></tr>
+          <tr><td>8</td><td>LCD Display</td><td>20×4 I²C LCD</td><td>1</td><td>₹200</td><td>On-site display</td></tr>
+          <tr><td>9</td><td>Power Supply</td><td>5V 2A Adapter</td><td>1</td><td>₹120</td><td>System power</td></tr>
+          <tr><td>10</td><td>Enclosure</td><td>ABS Plastic Box</td><td>1</td><td>₹180</td><td>Weather protection</td></tr>
+          <tr class="total-row"><td colspan="4"><strong>Total Estimated Cost</strong></td><td colspan="2"><strong>₹4,650</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- ──────────────────────── SECTION: REPORT ──────────────────────── -->
+<main id="section-report" class="section">
+  <div class="report-page">
+    <div class="report-header">
+      <div class="report-logo">🌿</div>
+      <div>
+        <h1>AirSense IoT – Project Report</h1>
+        <p>Air Quality &amp; Pollution Level Monitoring Network</p>
+        <p class="report-meta">CIA 3 | Applied IoT – CSE Batch | February 2026</p>
+      </div>
+    </div>
+
+    <div class="milestones">
+      <h2>Project Milestones</h2>
+      <div class="milestone-list">
+
+        <div class="milestone done">
+          <div class="ms-badge">✅ M1</div>
+          <div class="ms-content">
+            <h3>Problem Analysis &amp; System Design</h3>
+            <ul>
+              <li>Identified key pollutants: CO₂, PM2.5, NO₂, O₃, CO</li>
+              <li>Selected ESP32 as core MCU for Wi-Fi + dual UART support</li>
+              <li>Designed multi-node sensor network with 5 deployment zones</li>
+              <li>Defined AQI threshold levels following CPCB/EPA standards</li>
+              <li>Developed system block diagram and GPIO pin mapping</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="milestone done">
+          <div class="ms-badge">✅ M2</div>
+          <div class="ms-content">
+            <h3>Hardware Development</h3>
+            <ul>
+              <li>Interfaced MH-Z19B via UART (NDIR CO₂, ±50 ppm accuracy)</li>
+              <li>Integrated PMS5003 laser particulate counter for PM2.5/PM10</li>
+              <li>Connected MiCS-2714 MEMS sensor for NO₂ via ADC with calibration</li>
+              <li>Deployed 20×4 I²C LCD for on-site real-time display</li>
+              <li>Implemented DHT22 for ambient temperature and humidity context</li>
+              <li>Assembled all sensors in weather-proof ABS enclosure</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="milestone done">
+          <div class="ms-badge">✅ M3</div>
+          <div class="ms-content">
+            <h3>Cloud Integration &amp; Data Analytics</h3>
+            <ul>
+              <li>Implemented MQTT protocol over TLS for secure data upload</li>
+              <li>Configured ThingSpeak cloud for time-series data storage</li>
+              <li>Built real-time web dashboard with Chart.js visualization</li>
+              <li>Added AQI calculation engine using EPA breakpoint formula</li>
+              <li>Implemented SMS/email alert system for threshold breaches</li>
+              <li>Created public data API endpoint for awareness reporting</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="milestone done">
+          <div class="ms-badge">✅ M4</div>
+          <div class="ms-content">
+            <h3>Reporting &amp; Preventive Recommendations</h3>
+            <ul>
+              <li>Collected 72 hours of sensor baseline data</li>
+              <li>Identified peak pollution hours: 7–9 AM and 5–8 PM</li>
+              <li>CO₂ levels correlate with occupancy and ventilation schedules</li>
+              <li>PM2.5 spikes observed during construction activity and diesel exhausts</li>
+              <li>NO₂ elevated near roadside nodes due to vehicular emissions</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Observations -->
+    <div class="observations">
+      <h2>📋 Key Observations</h2>
+      <div class="obs-grid">
+        <div class="obs-card co2-card">
+          <h3>🫁 CO₂ (Carbon Dioxide)</h3>
+          <p><strong>Range observed:</strong> 412–1,850 ppm</p>
+          <p><strong>Peak hours:</strong> Morning rush & occupied classrooms</p>
+          <p><strong>Threshold crossed:</strong> &gt;1000 ppm in indoor zones during classes</p>
+          <p><strong>Source:</strong> Human respiration, poor ventilation, combustion</p>
+        </div>
+        <div class="obs-card pm-card">
+          <h3>💨 PM2.5 (Fine Particles)</h3>
+          <p><strong>Range observed:</strong> 5–87 μg/m³</p>
+          <p><strong>Peak events:</strong> Diesel vehicle idling, construction dust</p>
+          <p><strong>Threshold crossed:</strong> Moderate to Unhealthy during 6–9 AM</p>
+          <p><strong>Source:</strong> Vehicle exhaust, road dust, construction activities</p>
+        </div>
+        <div class="obs-card no2-card">
+          <h3>🏭 NO₂ (Nitrogen Dioxide)</h3>
+          <p><strong>Range observed:</strong> 15–112 ppb</p>
+          <p><strong>Peak hours:</strong> Evening traffic congestion (5–8 PM)</p>
+          <p><strong>Threshold crossed:</strong> 53 ppb briefly at roadside nodes</p>
+          <p><strong>Source:</strong> Vehicle combustion, diesel generators</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations">
+      <h2>🛡️ Preventive Recommendations</h2>
+      <div class="rec-list">
+        <div class="rec"><span class="rec-num">01</span><div><strong>Improve Ventilation:</strong> Install HVAC systems with CO₂-triggered automatic ventilation in classrooms and offices to prevent CO₂ buildup above 1000 ppm.</div></div>
+        <div class="rec"><span class="rec-num">02</span><div><strong>Traffic Regulation:</strong> Implement vehicle-free zones near sensitive areas during peak hours (7–9 AM) to reduce NO₂ and PM2.5 levels.</div></div>
+        <div class="rec"><span class="rec-num">03</span><div><strong>Green Barriers:</strong> Plant dense vegetative buffers along roadways. Trees can reduce particulate matter by 20–30% near emission sources.</div></div>
+        <div class="rec"><span class="rec-num">04</span><div><strong>Early Alerts:</strong> Deploy the AQI alert system to send real-time SMS notifications to campus administrators when thresholds are breached.</div></div>
+        <div class="rec"><span class="rec-num">05</span><div><strong>Policy Interventions:</strong> Share monthly AQI trend reports with local authorities to lobby for stricter emission controls and inspection programs.</div></div>
+        <div class="rec"><span class="rec-num">06</span><div><strong>Expand Sensor Network:</strong> Add more sensor nodes to achieve fine-grained spatial pollution mapping and hotspot identification.</div></div>
+      </div>
+    </div>
+
+    <!-- Challenges -->
+    <div class="challenges">
+      <h2>⚠️ Challenges Encountered</h2>
+      <div class="ch-grid">
+        <div class="ch-card"><strong>Sensor Calibration:</strong> MiCS-2714 required multi-point calibration with reference gas due to cross-sensitivity to humidity and temperature.</div>
+        <div class="ch-card"><strong>Wi-Fi Drops:</strong> Occasional MQTT disconnections resolved by implementing exponential back-off reconnection and local SD-card buffering.</div>
+        <div class="ch-card"><strong>Power Stability:</strong> Voltage drops during PMS5003 fan spin-up caused ESP32 resets; resolved with 1000μF decoupling capacitor.</div>
+        <div class="ch-card"><strong>EMI Interference:</strong> ADC readings noisy near Servo motor; shielded cables and hardware averaging over 16 samples improved accuracy.</div>
+      </div>
+    </div>
+
+    <div class="report-footer">
+      <p>📌 <strong>GitHub Repository:</strong> <a href="#" class="gh-link">github.com/airsense-iot/pollution-monitor</a></p>
+      <p>Submitted under CIA 3 – Applied IoT, CSE Department | 2026</p>
+    </div>
+  </div>
+</main>
+
+<!-- Alert Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
